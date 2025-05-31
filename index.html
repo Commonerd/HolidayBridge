@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HolidayBridge - 한일 공휴일 비교 달력</title>
+    <meta
+      name="description"
+      content="HolidayBridge는 한국과 일본의 공휴일을 한눈에 비교할 수 있는 달력 서비스입니다. 연속 휴일, 징검다리 휴일을 예측하여 여행 및 비즈니스 계획을 도와드립니다."
+    />
+    <meta
+      name="keywords"
+      content="한일 공휴일, 한국 공휴일, 일본 공휴일, 공휴일 달력, 연휴, 징검다리 휴일, Korea Japan Holidays, Public Holidays, Holiday Calendar, Long Weekends"
+    />
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <style>
+      /* 글로벌 스타일 */
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f7f6;
+        color: #333;
+        line-height: 1.6;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      header {
+        background-color: #2c3e50;
+        color: white;
+        padding: 1.5rem 0;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 2.5em;
+        letter-spacing: 1px;
+      }
+
+      nav {
+        background-color: #34495e;
+        padding: 0.8rem 0;
+        text-align: center;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
+
+      nav a {
+        color: white;
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        transition: background-color 0.3s ease;
+      }
+
+      nav a:hover {
+        background-color: #4a667b;
+      }
+
+      main {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 2rem auto;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        flex-grow: 1;
+      }
+
+      section {
+        margin-bottom: 2.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #eee;
+      }
+
+      section:last-child {
+        border-bottom: none;
+      }
+
+      h2 {
+        color: #2c3e50;
+        font-size: 1.8em;
+        margin-bottom: 1.2rem;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 0.5rem;
+        display: inline-block;
+      }
+
+      .controls {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+      }
+
+      .controls select {
+        padding: 0.8rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1em;
+      }
+
+      .controls button {
+        background-color: #3498db;
+        color: white;
+        padding: 0.8rem 1.2rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: background-color 0.3s ease;
+      }
+
+      .controls button:hover {
+        background-color: #2980b9;
+      }
+
+      .calendar-container {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+
+      .calendar-box {
+        background-color: #ecf0f1;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 48%; /* For two columns on larger screens */
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .calendar-box h3 {
+        margin-top: 0;
+        color: #2c3e50;
+        font-size: 1.5em;
+        margin-bottom: 15px;
+        text-align: center;
+      }
+
+      .calendar {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9em;
+        text-align: center;
+      }
+
+      .calendar th,
+      .calendar td {
+        padding: 8px 5px;
+        border: 1px solid #ddd;
+      }
+
+      .calendar th {
+        background-color: #34495e;
+        color: white;
+        font-weight: normal;
+      }
+
+      .calendar td {
+        background-color: #fdfdfd;
+      }
+
+      .calendar td.weekend {
+        color: #e74c3c; /* Red for weekend */
+      }
+
+      .calendar td.holiday {
+        background-color: #dbe9f6; /* Light blue for holiday */
+        font-weight: bold;
+        color: #2980b9;
+      }
+
+      .calendar td.holiday-name {
+        font-size: 0.7em;
+        display: block;
+        margin-top: 3px;
+        color: #555;
+      }
+
+      .holiday-list {
+        margin-top: 2rem;
+        width: 100%;
+      }
+
+      .holiday-list ul {
+        list-style: none;
+        padding: 0;
+      }
+
+      .holiday-list li {
+        background-color: #ecf0f1;
+        padding: 10px 15px;
+        margin-bottom: 8px;
+        border-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 1em;
+      }
+
+      .holiday-list li span.country {
+        font-weight: bold;
+        color: #3498db;
+        margin-right: 10px;
+        min-width: 60px; /* Ensure country name has enough space */
+        text-align: left;
+      }
+      .holiday-list li span.date {
+        color: #555;
+        flex-grow: 1; /* Allow date to take available space */
+        text-align: left;
+      }
+      .holiday-list li span.name {
+        font-weight: bold;
+        color: #2c3e50;
+        text-align: right;
+        flex-shrink: 0; /* Prevent holiday name from shrinking */
+      }
+
+      .language-switcher {
+        text-align: right;
+        padding-bottom: 1rem;
+      }
+
+      .language-switcher select {
+        padding: 0.5rem;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+      }
+
+      /* Continuous Holiday and Bridge Holiday Section */
+      .holiday-insights {
+        margin-top: 3rem;
+        background-color: #e8f5e9; /* Light green background */
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      .holiday-insights h3 {
+        color: #28a745; /* Green for success/insights */
+        border-bottom: 2px solid #28a745;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        font-size: 1.6em;
+        display: inline-block;
+      }
+
+      .holiday-insights ul {
+        list-style: none;
+        padding: 0;
+      }
+
+      .holiday-insights li {
+        background-color: #f0fdf0; /* Lighter green for list items */
+        padding: 12px 18px;
+        margin-bottom: 10px;
+        border-radius: 6px;
+        border-left: 5px solid #28a745;
+        font-size: 1.1em;
+        line-height: 1.4;
+      }
+
+      .holiday-insights li strong {
+        color: #1e7e34; /* Darker green */
+      }
+      .holiday-insights li span.days {
+        font-weight: bold;
+        color: #dc3545; /* Red for days off */
+      }
+
+      footer {
+        text-align: center;
+        padding: 1.5rem;
+        background-color: #2c3e50;
+        color: white;
+        margin-top: auto; /* Push footer to the bottom */
+        box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 992px) {
+        .calendar-box {
+          max-width: 100%; /* Stack calendars on smaller screens */
+        }
+      }
+
+      @media (max-width: 768px) {
+        h1 {
+          font-size: 2em;
+        }
+
+        main {
+          padding: 1rem;
+          margin: 1rem auto;
+        }
+
+        .controls {
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .controls select,
+        .controls button {
+          width: 100%;
+        }
+
+        .calendar th,
+        .calendar td {
+          padding: 6px 3px;
+          font-size: 0.8em;
+        }
+
+        .calendar td.holiday-name {
+          font-size: 0.6em;
+        }
+        .holiday-list li {
+          flex-direction: column; /* Stack elements on very small screens */
+          align-items: flex-start;
+        }
+        .holiday-list li span.country,
+        .holiday-list li span.date,
+        .holiday-list li span.name {
+          width: 100%;
+          text-align: left;
+        }
+        .holiday-list li span.date {
+          margin-top: 5px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        h1 {
+          font-size: 1.8em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>HolidayBridge</h1>
+      <p data-i18n="tagline">한일 공휴일 비교 달력</p>
+    </header>
+
+    <nav>
+      <a href="#calendar-view" data-i18n="nav.calendar">달력 보기</a>
+      <a href="#insights" data-i18n="nav.insights">연휴 분석</a>
+      <a href="#about" data-i18n="nav.about">서비스 소개</a>
+      <a href="#contact" data-i18n="nav.contact">문의</a>
+    </nav>
+
+    <main>
+      <div class="language-switcher">
+        <label for="language-select" data-i18n="language.select"
+          >언어 선택:</label
+        >
+        <select id="language-select">
+          <option value="ko">한국어</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="ar">العربية</option>
+          <option value="ru">Русский</option>
+          <option value="ja">日本語</option>
+          <option value="zh">中文</option>
+        </select>
+      </div>
+
+      <section id="calendar-view">
+        <h2 data-i18n="section.calendar.title">한일 공휴일 달력</h2>
+        <p data-i18n="section.calendar.description">
+          원하는 연도와 월을 선택하여 한국과 일본의 공휴일을 동시에 확인하세요.
+        </p>
+
+        <div class="controls">
+          <label for="year-select" data-i18n="label.year">연도:</label>
+          <select id="year-select"></select>
+          <label for="month-select" data-i18n="label.month">월:</label>
+          <select id="month-select"></select>
+          <button onclick="renderCalendars()" data-i18n="button.view">
+            보기
+          </button>
+        </div>
+
+        <div class="calendar-container">
+          <div class="calendar-box">
+            <h3 data-i18n="country.korea">대한민국</h3>
+            <div id="korea-calendar-output"></div>
+          </div>
+          <div class="calendar-box">
+            <h3 data-i18n="country.japan">일본</h3>
+            <div id="japan-calendar-output"></div>
+          </div>
+        </div>
+
+        <div class="holiday-list">
+          <h3 data-i18n="list.title">선택 월 공휴일 목록</h3>
+          <ul id="combined-holiday-list"></ul>
+        </div>
+      </section>
+
+      <section id="insights" class="holiday-insights">
+        <h2 data-i18n="section.insights.title">
+          연휴 분석: 연속 휴일 & 징검다리 휴일 탐지기
+        </h2>
+        <p data-i18n="section.insights.description">
+          선택된 연도의 모든 공휴일을 기반으로, 한국과 일본에서 각각 3일 이상
+          지속되는 연속 휴일과 연차를 사용하면 긴 연휴를 만들 수 있는 징검다리
+          휴일을 예측합니다.
+        </p>
+
+        <div class="controls">
+          <label for="insights-year-select" data-i18n="label.year">연도:</label>
+          <select id="insights-year-select"></select>
+          <button onclick="analyzeHolidays()" data-i18n="button.analyze">
+            연휴 분석하기
+          </button>
+        </div>
+
+        <h3 data-i18n="insights.korea.title">대한민국 연휴 분석</h3>
+        <ul id="korea-insights-list">
+          <li data-i18n="insights.placeholder">연휴 분석 버튼을 눌러보세요.</li>
+        </ul>
+
+        <h3 data-i18n="insights.japan.title">일본 연휴 분석</h3>
+        <ul id="japan-insights-list">
+          <li data-i18n="insights.placeholder">연휴 분석 버튼을 눌러보세요.</li>
+        </ul>
+      </section>
+
+      <section id="about">
+        <h2 data-i18n="section.about.title">서비스 소개</h2>
+        <p data-i18n="section.about.p1">
+          HolidayBridge는 한국과 일본 양국의 공휴일을 한눈에 비교하고 관리할 수
+          있도록 돕는 웹 서비스입니다. 한국의 설날, 추석과 일본의 골든위크, 오봉
+          등 각국의 주요 공휴일들을 달력 형태로 제공하며, 특히 **연속 휴일 예측
+          및 징검다리 휴일 탐지기** 기능을 통해 효율적인 휴가 계획을 세울 수
+          있도록 지원합니다.
+        </p>
+        <p data-i18n="section.about.p2">
+          해외여행, 유학, 워킹홀리데이, 비즈니스 출장 등 한일 양국을 오가는
+          분들께 HolidayBridge는 필수적인 도구입니다. 정확하고 시기적절한 공휴일
+          정보를 통해 여러분의 시간을 더욱 가치 있게 활용하세요.
+        </p>
+      </section>
+
+      <section id="contact">
+        <h2 data-i18n="section.contact.title">문의</h2>
+        <p data-i18n="section.contact.p1">
+          서비스 관련 문의사항이나 개선 아이디어가 있다면 언제든지 연락 주세요.
+        </p>
+        <p data-i18n="section.contact.email">
+          이메일:
+          <a href="mailto:contact@holidaybridge.com"
+            >contact@holidaybridge.com</a
+          >
+        </p>
+        <p data-i18n="section.contact.social">소셜 미디어: (추후 추가 예정)</p>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        &copy; <span id="current-year"></span> HolidayBridge. All rights
+        reserved.
+      </p>
+    </footer>
+
+    <script>
+      // Localization data
+      const translations = {
+        ko: {
+          tagline: "한일 공휴일 비교 달력",
+          "nav.calendar": "달력 보기",
+          "nav.insights": "연휴 분석",
+          "nav.about": "서비스 소개",
+          "nav.contact": "문의",
+          "language.select": "언어 선택:",
+          "section.calendar.title": "한일 공휴일 달력",
+          "section.calendar.description":
+            "원하는 연도와 월을 선택하여 한국과 일본의 공휴일을 동시에 확인하세요.",
+          "label.year": "연도:",
+          "label.month": "월:",
+          "button.view": "보기",
+          "country.korea": "대한민국",
+          "country.japan": "일본",
+          "list.title": "선택 월 공휴일 목록",
+          "section.insights.title":
+            "연휴 분석: 연속 휴일 & 징검다리 휴일 탐지기",
+          "section.insights.description":
+            "선택된 연도의 모든 공휴일을 기반으로, 한국과 일본에서 각각 3일 이상 지속되는 연속 휴일과 연차를 사용하면 긴 연휴를 만들 수 있는 징검다리 휴일을 예측합니다.",
+          "button.analyze": "연휴 분석하기",
+          "insights.korea.title": "대한민국 연휴 분석",
+          "insights.japan.title": "일본 연휴 분석",
+          "insights.placeholder": "연휴 분석 버튼을 눌러보세요.",
+          "insights.continuous":
+            "<strong>{countryName} 연속 휴일:</strong> {startDate} ~ {endDate} ({days}일)",
+          "insights.bridge":
+            "<strong>{countryName} 징검다리 휴일 (연차 사용 시):</strong> {startDate} ~ {endDate} ({days}일 - {vacationDays}일 연차 사용)",
+          "insights.no-long-holidays":
+            "해당 연도에 3일 이상의 연속 휴일은 없습니다.",
+          "insights.no-bridge-holidays":
+            "해당 연도에 징검다리 휴일 (연차 사용 시)은 없습니다.",
+          "section.about.title": "서비스 소개",
+          "section.about.p1":
+            "HolidayBridge는 한국과 일본 양국의 공휴일을 한눈에 비교하고 관리할 수 있도록 돕는 웹 서비스입니다. 한국의 설날, 추석과 일본의 골든위크, 오봉 등 각국의 주요 공휴일들을 달력 형태로 제공하며, 특히 **연속 휴일 예측 및 징검다리 휴일 탐지기** 기능을 통해 효율적인 휴가 계획을 세울 수 있도록 지원합니다.",
+          "section.about.p2":
+            "해외여행, 유학, 워킹홀리데이, 비즈니스 출장 등 한일 양국을 오가는 분들께 HolidayBridge는 필수적인 도구입니다. 정확하고 시기적절한 공휴일 정보를 통해 여러분의 시간을 더욱 가치 있게 활용하세요.",
+          "section.contact.title": "문의",
+          "section.contact.p1":
+            "서비스 관련 문의사항이나 개선 아이디어가 있다면 언제든지 연락 주세요.",
+          "section.contact.email": "이메일:",
+          "section.contact.social": "소셜 미디어: (추후 추가 예정)",
+          "day.sun": "일",
+          "day.mon": "월",
+          "day.tue": "화",
+          "day.wed": "수",
+          "day.thu": "목",
+          "day.fri": "금",
+          "day.sat": "토",
+          "month.1": "1월",
+          "month.2": "2월",
+          "month.3": "3월",
+          "month.4": "4월",
+          "month.5": "5월",
+          "month.6": "6월",
+          "month.7": "7월",
+          "month.8": "8월",
+          "month.9": "9월",
+          "month.10": "10월",
+          "month.11": "11월",
+          "month.12": "12월",
+          "format.date": (date) =>
+            `${date.getMonth() + 1}월 ${date.getDate()}일`,
+          "format.date.insights": (date) =>
+            `${date.getFullYear()}년 ${
+              date.getMonth() + 1
+            }월 ${date.getDate()}일`,
+        },
+        en: {
+          tagline: "Korea-Japan Public Holiday Calendar",
+          "nav.calendar": "Calendar View",
+          "nav.insights": "Holiday Analysis",
+          "nav.about": "About Us",
+          "nav.contact": "Contact",
+          "language.select": "Select Language:",
+          "section.calendar.title": "Korea & Japan Public Holiday Calendar",
+          "section.calendar.description":
+            "Select the desired year and month to view public holidays in both Korea and Japan simultaneously.",
+          "label.year": "Year:",
+          "label.month": "Month:",
+          "button.view": "View",
+          "country.korea": "South Korea",
+          "country.japan": "Japan",
+          "list.title": "Holidays for Selected Month",
+          "section.insights.title":
+            "Holiday Analysis: Continuous & Bridge Holiday Detector",
+          "section.insights.description":
+            "Based on all holidays in the selected year, we predict continuous holidays lasting 3+ days (including weekends) and potential bridge holidays that can create longer breaks by using annual leave, for both Korea and Japan.",
+          "button.analyze": "Analyze Holidays",
+          "insights.korea.title": "South Korea Holiday Analysis",
+          "insights.japan.title": "Japan Holiday Analysis",
+          "insights.placeholder": "Click the 'Analyze Holidays' button.",
+          "insights.continuous":
+            "<strong>{countryName} Continuous Holiday:</strong> {startDate} ~ {endDate} ({days} days)",
+          "insights.bridge":
+            "<strong>{countryName} Bridge Holiday (with annual leave):</strong> {startDate} ~ {endDate} ({days} days - {vacationDays} day(s) annual leave)",
+          "insights.no-long-holidays":
+            "No continuous holidays of 3 or more days in this year.",
+          "insights.no-bridge-holidays":
+            "No bridge holidays (with annual leave) in this year.",
+          "section.about.title": "About Our Service",
+          "section.about.p1":
+            "HolidayBridge is a web service designed to help you easily compare and manage public holidays in both Korea and Japan. It provides major holidays from both countries, such as Korea's Seollal and Chuseok, and Japan's Golden Week and Obon, in a calendar format. Notably, our **Continuous Holiday Prediction and Bridge Holiday Detector** feature helps you plan your vacations efficiently.",
+          "section.about.p2":
+            "Whether you're traveling, studying abroad, on a working holiday, or on a business trip between Korea and Japan, HolidayBridge is an essential tool. Make the most of your time with accurate and timely holiday information.",
+          "section.contact.title": "Contact Us",
+          "section.contact.p1":
+            "If you have any questions or ideas for improvement, please feel free to contact us.",
+          "section.contact.email": "Email:",
+          "section.contact.social": "Social Media: (To be added later)",
+          "day.sun": "Sun",
+          "day.mon": "Mon",
+          "day.tue": "Tue",
+          "day.wed": "Wed",
+          "day.thu": "Thu",
+          "day.fri": "Fri",
+          "day.sat": "Sat",
+          "month.1": "Jan",
+          "month.2": "Feb",
+          "month.3": "Mar",
+          "month.4": "Apr",
+          "month.5": "May",
+          "month.6": "Jun",
+          "month.7": "Jul",
+          "month.8": "Aug",
+          "month.9": "Sep",
+          "month.10": "Oct",
+          "month.11": "Nov",
+          "month.12": "Dec",
+          "format.date": (date) =>
+            `${date.toLocaleString("en-US", {
+              month: "short",
+            })} ${date.getDate()}`,
+          "format.date.insights": (date) =>
+            `${date.getFullYear()}-${(date.getMonth() + 1)
+              .toString()
+              .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`,
+        },
+        es: {
+          tagline: "Calendario de Feriados Corea-Japón",
+          "nav.calendar": "Vista de Calendario",
+          "nav.insights": "Análisis de Feriados",
+          "nav.about": "Acerca de Nosotros",
+          "nav.contact": "Contacto",
+          "language.select": "Seleccionar Idioma:",
+          "section.calendar.title":
+            "Calendario de Feriados Públicos de Corea y Japón",
+          "section.calendar.description":
+            "Seleccione el año y el mes deseados para ver los feriados públicos en Corea y Japón simultáneamente.",
+          "label.year": "Año:",
+          "label.month": "Mes:",
+          "button.view": "Ver",
+          "country.korea": "Corea del Sur",
+          "country.japan": "Japón",
+          "list.title": "Feriados del Mes Seleccionado",
+          "section.insights.title":
+            "Análisis de Feriados: Detector de Feriados Continuos y Puente",
+          "section.insights.description":
+            "Basándonos en todos los feriados del año seleccionado, predecimos los feriados continuos de 3 o más días (incluidos los fines de semana) y los posibles feriados puente que pueden crear descansos más largos usando el permiso anual, tanto para Corea como para Japón.",
+          "button.analyze": "Analizar Feriados",
+          "insights.korea.title": "Análisis de Feriados en Corea del Sur",
+          "insights.japan.title": "Análisis de Feriados en Japón",
+          "insights.placeholder": "Haga clic en el botón 'Analizar Feriados'.",
+          "insights.continuous":
+            "<strong>{countryName} Feriado Continuo:</strong> {startDate} ~ {endDate} ({days} días)",
+          "insights.bridge":
+            "<strong>{countryName} Feriado Puente (con permiso anual):</strong> {startDate} ~ {endDate} ({days} días - {vacationDays} día(s) de permiso anual)",
+          "insights.no-long-holidays":
+            "No hay feriados continuos de 3 o más días este año.",
+          "insights.no-bridge-holidays":
+            "No hay feriados puente (con permiso anual) este año.",
+          "section.about.title": "Acerca de nuestro Servicio",
+          "section.about.p1":
+            "HolidayBridge es un servicio web diseñado para ayudarle a comparar y gestionar fácilmente los feriados públicos en Corea y Japón. Proporciona los principales feriados de ambos países, como Seollal y Chuseok de Corea, y Golden Week y Obon de Japón, en formato de calendario. En particular, nuestra función de **Predicción de Feriados Continuos y Detector de Feriados Puente** le ayuda a planificar sus vacaciones de manera eficiente.",
+          "section.about.p2":
+            "Ya sea que esté viajando, estudiando en el extranjero, en una visa de vacaciones de trabajo o en un viaje de negocios entre Corea y Japón, HolidayBridge es una herramienta esencial. Aproveche al máximo su tiempo con información precisa y oportuna sobre los feriados.",
+          "section.contact.title": "Contáctenos",
+          "section.contact.p1":
+            "Si tiene alguna pregunta o idea para mejorar, no dude en contactarnos.",
+          "section.contact.email": "Correo electrónico:",
+          "section.contact.social":
+            "Redes Sociales: (Se añadirán más adelante)",
+          "day.sun": "Dom",
+          "day.mon": "Lun",
+          "day.tue": "Mar",
+          "day.wed": "Mié",
+          "day.thu": "Jue",
+          "day.fri": "Vie",
+          "day.sat": "Sáb",
+          "month.1": "Ene",
+          "month.2": "Feb",
+          "month.3": "Mar",
+          "month.4": "Abr",
+          "month.5": "May",
+          "month.6": "Jun",
+          "month.7": "Jul",
+          "month.8": "Ago",
+          "month.9": "Sep",
+          "month.10": "Oct",
+          "month.11": "Nov",
+          "month.12": "Dic",
+          "format.date": (date) =>
+            `${date.toLocaleString("es-ES", {
+              month: "short",
+            })} ${date.getDate()}`,
+          "format.date.insights": (date) =>
+            `${date.getFullYear()}-${(date.getMonth() + 1)
+              .toString()
+              .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`,
+        },
+        ar: {
+          tagline: "تقويم العطلات الكورية-اليابانية",
+          "nav.calendar": "عرض التقويم",
+          "nav.insights": "تحليل العطلات",
+          "nav.about": "معلومات عنا",
+          "nav.contact": "اتصل بنا",
+          "language.select": "اختر اللغة:",
+          "section.calendar.title": "تقويم العطلات الرسمية في كوريا واليابان",
+          "section.calendar.description":
+            "اختر السنة والشهر المطلوبين لعرض العطلات الرسمية في كوريا واليابان في نفس الوقت.",
+          "label.year": "السنة:",
+          "label.month": "الشهر:",
+          "button.view": "عرض",
+          "country.korea": "كوريا الجنوبية",
+          "country.japan": "اليابان",
+          "list.title": "عطلات الشهر المحدد",
+          "section.insights.title":
+            "تحليل العطلات: كاشف العطلات المستمرة وعطلات الجسر",
+          "section.insights.description":
+            "استنادًا إلى جميع العطلات في السنة المختارة، نتوقع العطلات المستمرة التي تستمر لمدة 3 أيام أو أكثر (بما في ذلك عطلات نهاية الأسبوع) والعطلات الجسرية المحتملة التي يمكن أن تخلق فترات راحة أطول باستخدام الإجازة السنوية، لكل من كوريا واليابان.",
+          "button.analyze": "تحليل العطلات",
+          "insights.korea.title": "تحليل العطلات في كوريا الجنوبية",
+          "insights.japan.title": "تحليل العطلات في اليابان",
+          "insights.placeholder": "انقر على زر 'تحليل العطلات'.",
+          "insights.continuous":
+            "<strong>{countryName} عطلة مستمرة:</strong> {startDate} ~ {endDate} ({days} أيام)",
+          "insights.bridge":
+            "<strong>{countryName} عطلة جسر (مع إجازة سنوية):</strong> {startDate} ~ {endDate} ({days} أيام - {vacationDays} يوم/أيام إجازة سنوية)",
+          "insights.no-long-holidays":
+            "لا توجد عطلات مستمرة لمدة 3 أيام أو أكثر في هذا العام.",
+          "insights.no-bridge-holidays":
+            "لا توجد عطلات جسر (مع إجازة سنوية) في هذا العام.",
+          "section.about.title": "حول خدمتنا",
+          "section.about.p1":
+            "HolidayBridge هي خدمة ويب مصممة لمساعدتك على مقارنة وإدارة العطلات الرسمية في كوريا واليابان بسهولة. توفر العطلات الرئيسية من كلا البلدين، مثل سيلال وتشوسوك الكورية، والأسبوع الذهبي وأوبون الياباني، في شكل تقويم. على وجه الخصوص، تساعدك ميزة **توقع العطلات المستمرة وكاشف عطلات الجسر** على التخطيط لعطلاتك بكفاءة.",
+          "section.about.p2":
+            "سواء كنت تسافر، أو تدرس في الخارج، أو في عطلة عمل، أو في رحلة عمل بين كوريا واليابان، فإن HolidayBridge هي أداة أساسية. حقق أقصى استفادة من وقتك من خلال معلومات العطلات الدقيقة وفي الوقت المناسب.",
+          "section.contact.title": "اتصل بنا",
+          "section.contact.p1":
+            "إذا كانت لديك أي أسئلة أو أفكار للتحسين، فلا تتردد في الاتصال بنا.",
+          "section.contact.email": "البريد الإلكتروني:",
+          "section.contact.social": "وسائل التواصل الاجتماعي: (ستضاف لاحقًا)",
+          "day.sun": "الأحد",
+          "day.mon": "الاثنين",
+          "day.tue": "الثلاثاء",
+          "day.wed": "الأربعاء",
+          "day.thu": "الخميس",
+          "day.fri": "الجمعة",
+          "day.sat": "السبت",
+          "month.1": "يناير",
+          "month.2": "فبراير",
+          "month.3": "مارس",
+          "month.4": "أبريل",
+          "month.5": "مايو",
+          "month.6": "يونيو",
+          "month.7": "يوليو",
+          "month.8": "أغسطس",
+          "month.9": "سبتمبر",
+          "month.10": "أكتوبر",
+          "month.11": "نوفمبر",
+          "month.12": "ديسمبر",
+          "format.date": (date) =>
+            `${date.getDate()} ${date.toLocaleString("ar-SA", {
+              month: "short",
+            })}`,
+          "format.date.insights": (date) =>
+            `${date.getFullYear()}-${(date.getMonth() + 1)
+              .toString()
+              .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`,
+        },
+        ru: {
+          tagline: "Календарь праздников Корея-Япония",
+          "nav.calendar": "Просмотр календаря",
+          "nav.insights": "Анализ праздников",
+          "nav.about": "О нас",
+          "nav.contact": "Контакты",
+          "language.select": "Выбрать язык:",
+          "section.calendar.title":
+            "Календарь государственных праздников Кореи и Японии",
+          "section.calendar.description":
+            "Выберите желаемый год и месяц, чтобы одновременно просмотреть государственные праздники в Корее и Японии.",
+          "label.year": "Год:",
+          "label.month": "Месяц:",
+          "button.view": "Показать",
+          "country.korea": "Южная Корея",
+          "country.japan": "Япония",
+          "list.title": "Праздники за выбранный месяц",
+          "section.insights.title":
+            "Анализ праздников: Непрерывные и Мостовые праздники",
+          "section.insights.description":
+            "На основе всех праздников в выбранном году мы прогнозируем непрерывные праздники продолжительностью 3 и более дней (включая выходные) и потенциальные мостовые праздники, которые могут создать более длительные перерывы при использовании ежегодного отпуска, как для Кореи, так и для Японии.",
+          "button.analyze": "Анализировать праздники",
+          "insights.korea.title": "Анализ праздников Южной Кореи",
+          "insights.japan.title": "Анализ праздников Японии",
+          "insights.placeholder": "Нажмите кнопку 'Анализировать праздники'.",
+          "insights.continuous":
+            "<strong>{countryName} Непрерывный праздник:</strong> {startDate} ~ {endDate} ({days} дней)",
+          "insights.bridge":
+            "<strong>{countryName} Мостовой праздник (с ежегодным отпуском):</strong> {startDate} ~ {endDate} ({days} дней - {vacationDays} день(дней) ежегодного отпуска)",
+          "insights.no-long-holidays":
+            "В этом году нет непрерывных праздников продолжительностью 3 и более дней.",
+          "insights.no-bridge-holidays":
+            "В этом году нет мостовых праздников (с ежегодным отпуском).",
+          "section.about.title": "О нашем сервисе",
+          "section.about.p1":
+            "HolidayBridge — это веб-сервис, разработанный, чтобы помочь вам легко сравнивать и управлять государственными праздниками в Корее и Японии. Он предоставляет основные праздники обеих стран, такие как корейские Соллаль и Чусок, а также японские Золотая Неделя и Обон, в формате календаря. В частности, наша функция **Прогнозирования непрерывных праздников и Определитель мостовых праздников** помогает вам эффективно планировать свой отпуск.",
+          "section.about.p2":
+            "Независимо от того, путешествуете ли вы, учитесь за границей, работаете по программе Work and Holiday или находитесь в командировке между Кореей и Японией, HolidayBridge — это незаменимый инструмент. Используйте свое время максимально эффективно благодаря точной и своевременной информации о праздниках.",
+          "section.contact.title": "Свяжитесь с нами",
+          "section.contact.p1":
+            "Если у вас есть какие-либо вопросы или идеи по улучшению, пожалуйста, свяжитесь с нами.",
+          "section.contact.email": "Электронная почта:",
+          "section.contact.social": "Социальные сети: (будут добавлены позже)",
+          "day.sun": "Вс",
+          "day.mon": "Пн",
+          "day.tue": "Вт",
+          "day.wed": "Ср",
+          "day.thu": "Чт",
+          "day.fri": "Пт",
+          "day.sat": "Сб",
+          "month.1": "Янв",
+          "month.2": "Фев",
+          "month.3": "Мар",
+          "month.4": "Апр",
+          "month.5": "Май",
+          "month.6": "Июн",
+          "month.7": "Июл",
+          "month.8": "Авг",
+          "month.9": "Сен",
+          "month.10": "Окт",
+          "month.11": "Ноя",
+          "month.12": "Дек",
+          "format.date": (date) =>
+            `${date.getDate()} ${date.toLocaleString("ru-RU", {
+              month: "short",
+            })}`,
+          "format.date.insights": (date) =>
+            `${date.getFullYear()}-${(date.getMonth() + 1)
+              .toString()
+              .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`,
+        },
+        ja: {
+          tagline: "日韓祝日比較カレンダー",
+          "nav.calendar": "カレンダー表示",
+          "nav.insights": "連休分析",
+          "nav.about": "サービス紹介",
+          "nav.contact": "お問い合わせ",
+          "language.select": "言語選択:",
+          "section.calendar.title": "日韓祝日カレンダー",
+          "section.calendar.description":
+            "ご希望の年と月を選択し、韓国と日本の祝日を同時に確認してください。",
+          "label.year": "年:",
+          "label.month": "月:",
+          "button.view": "表示",
+          "country.korea": "大韓民国",
+          "country.japan": "日本",
+          "list.title": "選択月の祝日リスト",
+          "section.insights.title": "連休分析：連続休日＆飛び石連休検出器",
+          "section.insights.description":
+            "選択された年の全祝日を基に、韓国と日本それぞれで3日以上続く連続休日（週末含む）と、有給休暇を使用すると長期休暇になる飛び石連休を予測します。",
+          "button.analyze": "連休を分析",
+          "insights.korea.title": "大韓民国 連休分析",
+          "insights.japan.title": "日本 連休分析",
+          "insights.placeholder": "連休分析ボタンを押してください。",
+          "insights.continuous":
+            "<strong>{countryName} 連続休日:</strong> {startDate} ~ {endDate} ({days}日間)",
+          "insights.bridge":
+            "<strong>{countryName} 飛び石連休 (有給使用時):</strong> {startDate} ~ {endDate} ({days}日間 - 有給 {vacationDays}日使用)",
+          "insights.no-long-holidays":
+            "この年に3日以上の連続休日はありません。",
+          "insights.no-bridge-holidays":
+            "この年に飛び石連休（有給使用時）はありません。",
+          "section.about.title": "サービス紹介",
+          "section.about.p1":
+            "HolidayBridgeは、韓国と日本両国の祝日を一覧で比較・管理できるウェブサービスです。韓国の旧正月や秋夕、日本のゴールデンウィークやお盆など、各国の主要な祝日をカレンダー形式で提供し、特に**連続休日予測および飛び石連休検出器**機能を通じて、効率的な休暇計画をサポートします。",
+          "section.about.p2":
+            "海外旅行、留学、ワーキングホリデー、出張など、日韓両国を行き来する方々にとって、HolidayBridgeは不可欠なツールです。正確でタイムリーな祝日情報を活用し、あなたの時間をさらに価値あるものにしてください。",
+          "section.contact.title": "お問い合わせ",
+          "section.contact.p1":
+            "サービスに関するご質問や改善のアイデアがございましたら、お気軽にご連絡ください。",
+          "section.contact.email": "メール:",
+          "section.contact.social": "ソーシャルメディア: (後日追加予定)",
+          "day.sun": "日",
+          "day.mon": "月",
+          "day.tue": "火",
+          "day.wed": "水",
+          "day.thu": "木",
+          "day.fri": "金",
+          "day.sat": "土",
+          "month.1": "1月",
+          "month.2": "2月",
+          "month.3": "3月",
+          "month.4": "4月",
+          "month.5": "5月",
+          "month.6": "6月",
+          "month.7": "7月",
+          "month.8": "8月",
+          "month.9": "9月",
+          "month.10": "10月",
+          "month.11": "11月",
+          "month.12": "12月",
+          "format.date": (date) =>
+            `${date.getMonth() + 1}月${date.getDate()}日`,
+          "format.date.insights": (date) =>
+            `${date.getFullYear()}年${
+              date.getMonth() + 1
+            }月${date.getDate()}日`,
+        },
+        zh: {
+          tagline: "韩日节假日比较日历",
+          "nav.calendar": "日历视图",
+          "nav.insights": "节假日分析",
+          "nav.about": "关于我们",
+          "nav.contact": "联系我们",
+          "language.select": "选择语言:",
+          "section.calendar.title": "韩国和日本公共假期日历",
+          "section.calendar.description":
+            "选择所需的年份和月份，同时查看韩国和日本的公共假期。",
+          "label.year": "年份:",
+          "label.month": "月份:",
+          "button.view": "查看",
+          "country.korea": "大韩民国",
+          "country.japan": "日本",
+          "list.title": "所选月份的节假日列表",
+          "section.insights.title": "节假日分析：连续假期和搭桥假期检测器",
+          "section.insights.description":
+            "根据所选年份的所有假期，我们预测韩国和日本各自持续3天或以上的连续假期（包括周末）以及可以通过使用年假来延长假期的潜在搭桥假期。",
+          "button.analyze": "分析节假日",
+          "insights.korea.title": "韩国节假日分析",
+          "insights.japan.title": "日本节假日分析",
+          "insights.placeholder": "请点击“分析节假日”按钮。",
+          "insights.continuous":
+            "<strong>{countryName} 连续假期:</strong> {startDate} ~ {endDate} ({days}天)",
+          "insights.bridge":
+            "<strong>{countryName} 搭桥假期 (带年假):</strong> {startDate} ~ {endDate} ({days}天 - 使用年假 {vacationDays}天)",
+          "insights.no-long-holidays": "今年没有3天或以上的连续假期。",
+          "insights.no-bridge-holidays": "今年没有搭桥假期（带年假）。",
+          "section.about.title": "服务介绍",
+          "section.about.p1":
+            "HolidayBridge是一个旨在帮助您轻松比较和管理韩国和日本公共假期的网络服务。它以日历形式提供两国的主要假期，例如韩国的春节和中秋节，以及日本的黄金周和盂兰盆节。值得注意的是，我们的**连续假期预测和搭桥假期检测器**功能可帮助您高效地规划假期。",
+          "section.about.p2":
+            "无论您是旅行、留学、打工度假还是在韩国和日本之间出差，HolidayBridge都是一个必不可少的工具。通过准确及时的假期信息，充分利用您的时间。",
+          "section.contact.title": "联系我们",
+          "section.contact.p1":
+            "如果您有任何问题或改进意见，请随时与我们联系。",
+          "section.contact.email": "电子邮件:",
+          "section.contact.social": "社交媒体: (稍后添加)",
+          "day.sun": "日",
+          "day.mon": "一",
+          "day.tue": "二",
+          "day.wed": "三",
+          "day.thu": "四",
+          "day.fri": "五",
+          "day.sat": "六",
+          "month.1": "1月",
+          "month.2": "2月",
+          "month.3": "3月",
+          "month.4": "4月",
+          "month.5": "5月",
+          "month.6": "6月",
+          "month.7": "7月",
+          "month.8": "8月",
+          "month.9": "9月",
+          "month.10": "10月",
+          "month.11": "11月",
+          "month.12": "12月",
+          "format.date": (date) =>
+            `${date.getMonth() + 1}月${date.getDate()}日`,
+          "format.date.insights": (date) =>
+            `${date.getFullYear()}年${
+              date.getMonth() + 1
+            }月${date.getDate()}日`,
+        },
+      };
+
+      let currentLanguage = "ko"; // Default language
+
+      // Function to update the year in the footer
+      document.getElementById("current-year").textContent =
+        new Date().getFullYear();
+
+      // Populate year and month select boxes
+      const yearSelect = document.getElementById("year-select");
+      const insightsYearSelect = document.getElementById(
+        "insights-year-select"
+      );
+      const currentYear = new Date().getFullYear();
+      for (let i = currentYear - 2; i <= currentYear + 5; i++) {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = i;
+        yearSelect.appendChild(option);
+
+        const insightsOption = document.createElement("option");
+        insightsOption.value = i;
+        insightsOption.textContent = i;
+        insightsYearSelect.appendChild(insightsOption);
+      }
+      yearSelect.value = currentYear;
+      insightsYearSelect.value = currentYear;
+
+      const monthSelect = document.getElementById("month-select");
+      for (let i = 1; i <= 12; i++) {
+        const option = document.createElement("option");
+        option.value = i;
+        option.setAttribute("data-i18n", `month.${i}`);
+        monthSelect.appendChild(option);
+      }
+      monthSelect.value = new Date().getMonth() + 1; // Current month
+
+      // Holiday Data (Example Data - real service would fetch from APIs)
+      // Note: Dates are in YYYY-MM-DD format for easy parsing
+      const holidays = {
+        korea: {
+          2024: [
+            { date: "2024-01-01", name: "신정" },
+            { date: "2024-02-09", name: "설날" },
+            { date: "2024-02-10", name: "설날" },
+            { date: "2024-02-11", name: "설날" },
+            { date: "2024-02-12", name: "대체공휴일 (설날)" },
+            { date: "2024-03-01", name: "삼일절" },
+            { date: "2024-04-10", name: "국회의원선거" },
+            { date: "2024-05-05", name: "어린이날" },
+            { date: "2024-05-06", name: "대체공휴일 (어린이날)" },
+            { date: "2024-05-15", name: "부처님오신날" },
+            { date: "2024-06-06", name: "현충일" },
+            { date: "2024-08-15", name: "광복절" },
+            { date: "2024-09-16", name: "추석" },
+            { date: "2024-09-17", name: "추석" },
+            { date: "2024-09-18", name: "추석" },
+            { date: "2024-10-03", name: "개천절" },
+            { date: "2024-10-09", name: "한글날" },
+            { date: "2024-12-25", name: "크리스마스" },
+          ],
+          2025: [
+            { date: "2025-01-01", name: "신정" },
+            { date: "2025-01-28", name: "설날" },
+            { date: "2025-01-29", name: "설날" },
+            { date: "2025-01-30", name: "설날" },
+            { date: "2025-03-01", name: "삼일절" },
+            { date: "2025-05-05", name: "어린이날" },
+            { date: "2025-05-06", name: "부처님오신날" },
+            { date: "2025-06-06", name: "현충일" },
+            { date: "2025-08-15", name: "광복절" },
+            { date: "2025-10-03", name: "개천절" },
+            { date: "2025-10-06", name: "추석" },
+            { date: "2025-10-07", name: "추석" },
+            { date: "2025-10-08", name: "추석" },
+            { date: "2025-12-25", name: "크리스마스" },
+          ],
+          // Add more years for Korea
+        },
+        japan: {
+          2024: [
+            { date: "2024-01-01", name: "元日" },
+            { date: "2024-01-08", name: "成人の日" },
+            { date: "2024-02-11", name: "建国記念の日" },
+            { date: "2024-02-12", name: "振替休日 (建国記念の日)" },
+            { date: "2024-02-23", name: "天皇誕生日" },
+            { date: "2024-03-20", name: "春分の日" },
+            { date: "2024-04-29", name: "昭和の日" },
+            { date: "2024-05-03", name: "憲法記念日" },
+            { date: "2024-05-04", name: "みどりの日" },
+            { date: "2024-05-05", name: "こどもの日" },
+            { date: "2024-05-06", name: "振替休日 (こどもの日)" },
+            { date: "2024-07-15", name: "海の日" },
+            { date: "2024-08-11", name: "山の日" },
+            { date: "2024-08-12", name: "振替休日 (山の日)" },
+            { date: "2024-09-16", name: "敬老の日" },
+            { date: "2024-09-22", name: "秋分の日" },
+            { date: "2024-09-23", name: "振替休日 (秋分の日)" },
+            { date: "2024-10-14", name: "スポーツの日" },
+            { date: "2024-11-03", name: "文化の日" },
+            { date: "2024-11-04", name: "振替休日 (文化の日)" },
+            { date: "2024-11-23", name: "勤労感謝の日" },
+          ],
+          2025: [
+            { date: "2025-01-01", name: "元日" },
+            { date: "2025-01-13", name: "成人の日" },
+            { date: "2025-02-11", name: "建国記念の日" },
+            { date: "2025-02-23", name: "天皇誕生日" },
+            { date: "2025-02-24", name: "振替休日 (天皇誕生日)" },
+            { date: "2025-03-20", name: "春分の日" },
+            { date: "2025-04-29", name: "昭和の日" },
+            { date: "2025-05-03", name: "憲法記念日" },
+            { date: "2025-05-04", name: "みどりの日" },
+            { date: "2025-05-05", name: "こどもの日" },
+            { date: "2025-05-06", name: "振替休日 (こどもの日)" },
+            { date: "2025-07-21", name: "海の日" },
+            { date: "2025-08-11", name: "山の日" },
+            { date: "2025-09-15", name: "敬老の日" },
+            { date: "2025-09-23", name: "秋分の日" },
+            { date: "2025-10-13", name: "スポーツの日" },
+            { date: "2025-11-03", name: "文化の日" },
+            { date: "2025-11-23", name: "勤労感謝の日" },
+            { date: "2025-11-24", name: "振替休日 (勤労感謝の日)" },
+          ],
+          // Add more years for Japan
+        },
+      };
+
+      // Function to render a single month's calendar for a country
+      function renderCalendar(year, month, countryCode, outputElementId) {
+        const today = new Date();
+        const todayYear = today.getFullYear();
+        const todayMonth = today.getMonth() + 1;
+        const todayDate = today.getDate();
+
+        const firstDay = new Date(year, month - 1, 1);
+        const lastDay = new Date(year, month, 0);
+        const numDays = lastDay.getDate();
+        const startDay = firstDay.getDay(); // 0 for Sunday, 6 for Saturday
+
+        let calendarHtml = '<table class="calendar"><thead><tr>';
+        const weekDays = [
+          translations[currentLanguage]["day.sun"],
+          translations[currentLanguage]["day.mon"],
+          translations[currentLanguage]["day.tue"],
+          translations[currentLanguage]["day.wed"],
+          translations[currentLanguage]["day.thu"],
+          translations[currentLanguage]["day.fri"],
+          translations[currentLanguage]["day.sat"],
+        ];
+        weekDays.forEach((day) => {
+          calendarHtml += `<th>${day}</th>`;
+        });
+        calendarHtml += "</tr></thead><tbody><tr>";
+
+        // Fill leading empty cells
+        for (let i = 0; i < startDay; i++) {
+          calendarHtml += "<td></td>";
+        }
+
+        for (let day = 1; day <= numDays; day++) {
+          const date = new Date(year, month - 1, day);
+          const dayOfWeek = date.getDay(); // 0 for Sunday, 6 for Saturday
+
+          if ((startDay + day - 1) % 7 === 0 && day !== 1) {
+            // New row for each week
+            calendarHtml += "</tr><tr>";
+          }
+
+          let classNames = "";
+          if (dayOfWeek === 0 || dayOfWeek === 6) {
+            // Sunday or Saturday
+            classNames += "weekend ";
+          }
+
+          const dateString = `${year}-${String(month).padStart(
+            2,
+            "0"
+          )}-${String(day).padStart(2, "0")}`;
+          const countryHolidays = holidays[countryCode][year] || [];
+          const holidayInfo = countryHolidays.find(
+            (h) => h.date === dateString
+          );
+
+          let holidayName = "";
+          if (holidayInfo) {
+            classNames += "holiday ";
+            holidayName = `<span class="holiday-name">${holidayInfo.name}</span>`;
+          }
+
+          calendarHtml += `<td class="${classNames.trim()}">${day}${holidayName}</td>`;
+        }
+
+        // Fill trailing empty cells
+        for (let i = (startDay + numDays) % 7; i !== 0 && i < 7; i++) {
+          calendarHtml += "<td></td>";
+        }
+
+        calendarHtml += "</tr></tbody></table>";
+        document.getElementById(outputElementId).innerHTML = calendarHtml;
+      }
+
+      // Function to render both calendars
+      function renderCalendars() {
+        const year = parseInt(yearSelect.value);
+        const month = parseInt(monthSelect.value);
+
+        renderCalendar(year, month, "korea", "korea-calendar-output");
+        renderCalendar(year, month, "japan", "japan-calendar-output");
+        updateCombinedHolidayList(year, month);
+        saveToLocalStorage(); // Save current year and month
+      }
+
+      // Function to update the combined holiday list
+      function updateCombinedHolidayList(year, month) {
+        const combinedList = document.getElementById("combined-holiday-list");
+        combinedList.innerHTML = ""; // Clear previous list
+
+        const currentMonthHolidays = [];
+
+        // Get Korea holidays for the selected month
+        const koreaHolidays = holidays.korea[year] || [];
+        koreaHolidays.forEach((h) => {
+          const hDate = new Date(h.date);
+          if (hDate.getMonth() + 1 === month) {
+            currentMonthHolidays.push({
+              country: "korea",
+              date: hDate,
+              name: h.name,
+            });
+          }
+        });
+
+        // Get Japan holidays for the selected month
+        const japanHolidays = holidays.japan[year] || [];
+        japanHolidays.forEach((h) => {
+          const hDate = new Date(h.date);
+          if (hDate.getMonth() + 1 === month) {
+            currentMonthHolidays.push({
+              country: "japan",
+              date: hDate,
+              name: h.name,
+            });
+          }
+        });
+
+        // Sort by date
+        currentMonthHolidays.sort((a, b) => a.date - b.date);
+
+        if (currentMonthHolidays.length === 0) {
+          const li = document.createElement("li");
+          li.textContent =
+            translations[currentLanguage]["list.no-holidays"] ||
+            "선택 월에 공휴일이 없습니다."; // Add a no-holidays translation
+          combinedList.appendChild(li);
+          return;
+        }
+
+        currentMonthHolidays.forEach((h) => {
+          const li = document.createElement("li");
+          const countryName =
+            h.country === "korea"
+              ? translations[currentLanguage]["country.korea"]
+              : translations[currentLanguage]["country.japan"];
+          li.innerHTML = `<span class="country">${countryName}</span><span class="date">${translations[
+            currentLanguage
+          ]["format.date"](h.date)}</span><span class="name">${h.name}</span>`;
+          combinedList.appendChild(li);
+        });
+      }
+
+      // --- Holiday Analysis (Continuous & Bridge Holidays) ---
+
+      function getCountryAllDates(year, countryCode) {
+        const allDates = new Set();
+        const countryHolidays = holidays[countryCode][year] || [];
+
+        // Add all days of the year
+        const startDate = new Date(year, 0, 1);
+        const endDate = new Date(year, 11, 31);
+        for (
+          let d = new Date(startDate);
+          d <= endDate;
+          d.setDate(d.getDate() + 1)
+        ) {
+          allDates.add(d.toISOString().slice(0, 10)); // YYYY-MM-DD
+        }
+
+        // Mark holidays
+        const holidayDates = new Set();
+        countryHolidays.forEach((h) => holidayDates.add(h.date));
+
+        // Mark weekends
+        for (
+          let d = new Date(startDate);
+          d <= endDate;
+          d.setDate(d.getDate() + 1)
+        ) {
+          const dayOfWeek = d.getDay();
+          if (dayOfWeek === 0 || dayOfWeek === 6) {
+            // Sunday or Saturday
+            holidayDates.add(d.toISOString().slice(0, 10));
+          }
+        }
+        return Array.from(holidayDates).sort();
+      }
+
+      function analyzeHolidays() {
+        const year = parseInt(insightsYearSelect.value);
+        const koreaHolidays = getCountryAllDates(year, "korea");
+        const japanHolidays = getCountryAllDates(year, "japan");
+
+        const koreaInsightsList = document.getElementById(
+          "korea-insights-list"
+        );
+        const japanInsightsList = document.getElementById(
+          "japan-insights-list"
+        );
+
+        koreaInsightsList.innerHTML = "";
+        japanInsightsList.innerHTML = "";
+
+        const koreaContinuous = findContinuousHolidays(
+          year,
+          koreaHolidays,
+          "korea"
+        );
+        const japanContinuous = findContinuousHolidays(
+          year,
+          japanHolidays,
+          "japan"
+        );
+
+        const koreaBridge = findBridgeHolidays(year, koreaHolidays, "korea");
+        const japanBridge = findBridgeHolidays(year, japanHolidays, "japan");
+
+        displayInsights(
+          koreaContinuous,
+          koreaBridge,
+          koreaInsightsList,
+          translations[currentLanguage]["country.korea"]
+        );
+        displayInsights(
+          japanContinuous,
+          japanBridge,
+          japanInsightsList,
+          translations[currentLanguage]["country.japan"]
+        );
+      }
+
+      function findContinuousHolidays(year, holidayDates, countryCode) {
+        const continuousHolidays = [];
+        let currentStreak = [];
+
+        for (let i = 0; i < holidayDates.length; i++) {
+          const currentDate = new Date(holidayDates[i]);
+          if (currentStreak.length === 0) {
+            currentStreak.push(currentDate);
+          } else {
+            const prevDate = currentStreak[currentStreak.length - 1];
+            const diff =
+              (currentDate.getTime() - prevDate.getTime()) /
+              (1000 * 60 * 60 * 24);
+            if (diff === 1) {
+              // Consecutive day
+              currentStreak.push(currentDate);
+            } else {
+              // Gap
+              if (currentStreak.length >= 3) {
+                continuousHolidays.push({
+                  start: currentStreak[0],
+                  end: currentStreak[currentStreak.length - 1],
+                  days: currentStreak.length,
+                });
+              }
+              currentStreak = [currentDate];
+            }
+          }
+        }
+        // Check for the last streak
+        if (currentStreak.length >= 3) {
+          continuousHolidays.push({
+            start: currentStreak[0],
+            end: currentStreak[currentStreak.length - 1],
+            days: currentStreak.length,
+          });
+        }
+        return continuousHolidays;
+      }
+
+      function findBridgeHolidays(year, holidayDates, countryCode) {
+        const bridgeHolidays = [];
+        const holidaySet = new Set(holidayDates); // For quick lookup
+
+        const startDate = new Date(year, 0, 1);
+        const endDate = new Date(year, 11, 31);
+
+        for (
+          let d = new Date(startDate);
+          d <= endDate;
+          d.setDate(d.getDate() + 1)
+        ) {
+          const dateString = d.toISOString().slice(0, 10);
+          const dayOfWeek = d.getDay(); // 0: Sun, 1: Mon, ..., 6: Sat
+
+          if (
+            dayOfWeek === 1 ||
+            dayOfWeek === 2 ||
+            dayOfWeek === 3 ||
+            dayOfWeek === 4 ||
+            dayOfWeek === 5
+          ) {
+            // It's a weekday
+            if (!holidaySet.has(dateString)) {
+              // It's not a holiday
+              const prevDay = new Date(d);
+              prevDay.setDate(prevDay.getDate() - 1);
+              const nextDay = new Date(d);
+              nextDay.setDate(nextDay.getDate() + 1);
+
+              const prevDayIsHoliday = holidaySet.has(
+                prevDay.toISOString().slice(0, 10)
+              );
+              const nextDayIsHoliday = holidaySet.has(
+                nextDay.toISOString().slice(0, 10)
+              );
+
+              if (prevDayIsHoliday && nextDayIsHoliday) {
+                // Example: Holiday-Weekday-Holiday. User takes 1 day off
+                bridgeHolidays.push({
+                  start: prevDay, // Start from the previous holiday
+                  end: nextDay, // End on the next holiday
+                  days: 3, // Total days off
+                  vacationDays: 1, // Days of annual leave needed
+                  middleDay: d, // The weekday in between
+                });
+              } else if (prevDayIsHoliday && dayOfWeek === 1) {
+                // Example: Weekend-Holiday-Weekday (Monday holiday)
+                // If user takes Tuesday off, they get 4 days (Sat, Sun, Mon, Tue)
+                const prevPrevDay = new Date(prevDay);
+                prevPrevDay.setDate(prevPrevDay.getDate() - 1); // This is usually Saturday
+                const prevPrevPrevDay = new Date(prevPrevDay);
+                prevPrevPrevDay.setDate(prevPrevPrevDay.getDate() - 1); // This is usually Friday
+                if (
+                  holidaySet.has(prevDay.toISOString().slice(0, 10)) &&
+                  holidaySet.has(prevPrevDay.toISOString().slice(0, 10))
+                ) {
+                  // Sat, Sun, Mon are holidays
+                  const nextNextDay = new Date(nextDay);
+                  nextNextDay.setDate(nextNextDay.getDate() + 1); // Wednesday
+                  if (
+                    holidaySet.has(nextNextDay.toISOString().slice(0, 10)) &&
+                    !holidaySet.has(d.toISOString().slice(0, 10))
+                  ) {
+                    // Sat, Sun, Mon are holidays, Tue is not, Wed is holiday
+                    // This is a bridge: Sat-Sun-Mon-TUE(take off)-Wed
+                    bridgeHolidays.push({
+                      start: prevPrevPrevDay, // Start from Friday if Mon is holiday. Needs careful adjustment
+                      end: nextNextDay,
+                      days: 5,
+                      vacationDays: 1,
+                      middleDay: d,
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
+        return bridgeHolidays;
+      }
+
+      function displayInsights(
+        continuousHolidays,
+        bridgeHolidays,
+        listElement,
+        countryName
+      ) {
+        listElement.innerHTML = "";
+
+        if (continuousHolidays.length > 0) {
+          continuousHolidays.forEach((h) => {
+            const li = document.createElement("li");
+            let insightText =
+              translations[currentLanguage]["insights.continuous"];
+            insightText = insightText.replace("{countryName}", countryName);
+            insightText = insightText.replace(
+              "{startDate}",
+              translations[currentLanguage]["format.date.insights"](h.start)
+            );
+            insightText = insightText.replace(
+              "{endDate}",
+              translations[currentLanguage]["format.date.insights"](h.end)
+            );
+            insightText = insightText.replace(
+              "{days}",
+              `<span class="days">${h.days}</span>`
+            );
+            li.innerHTML = insightText;
+            listElement.appendChild(li);
+          });
+        } else {
+          const li = document.createElement("li");
+          li.textContent =
+            translations[currentLanguage]["insights.no-long-holidays"];
+          listElement.appendChild(li);
+        }
+
+        if (bridgeHolidays.length > 0) {
+          bridgeHolidays.forEach((b) => {
+            const li = document.createElement("li");
+            let insightText = translations[currentLanguage]["insights.bridge"];
+            insightText = insightText.replace("{countryName}", countryName);
+            insightText = insightText.replace(
+              "{startDate}",
+              translations[currentLanguage]["format.date.insights"](b.start)
+            );
+            insightText = insightText.replace(
+              "{endDate}",
+              translations[currentLanguage]["format.date.insights"](b.end)
+            );
+            insightText = insightText.replace(
+              "{days}",
+              `<span class="days">${b.days}</span>`
+            );
+            insightText = insightText.replace("{vacationDays}", b.vacationDays);
+            li.innerHTML = insightText;
+            listElement.appendChild(li);
+          });
+        } else {
+          const li = document.createElement("li");
+          li.textContent =
+            translations[currentLanguage]["insights.no-bridge-holidays"];
+          listElement.appendChild(li);
+        }
+
+        if (continuousHolidays.length === 0 && bridgeHolidays.length === 0) {
+          const li = document.createElement("li");
+          li.textContent =
+            translations[currentLanguage]["insights.placeholder"]; // Revert to placeholder if nothing found
+          listElement.innerHTML = "";
+          listElement.appendChild(li);
+        }
+      }
+
+      // Language switching
+      document
+        .getElementById("language-select")
+        .addEventListener("change", function () {
+          currentLanguage = this.value;
+          setLanguage(currentLanguage);
+          renderCalendars(); // Re-render calendars to update month names
+          analyzeHolidays(); // Re-analyze and update insights
+        });
+
+      function setLanguage(lang) {
+        document.querySelectorAll("[data-i18n]").forEach((element) => {
+          const key = element.getAttribute("data-i18n");
+          if (
+            translations[lang] &&
+            translations[lang][key] &&
+            typeof translations[lang][key] === "string"
+          ) {
+            element.textContent = translations[lang][key];
+          }
+        });
+
+        // Update month select options with translated names
+        for (let i = 1; i <= 12; i++) {
+          const option = monthSelect.querySelector(`option[value="${i}"]`);
+          if (option) {
+            option.textContent = translations[lang][`month.${i}`];
+          }
+        }
+      }
+
+      // Local Storage functions
+      function saveToLocalStorage() {
+        const data = {
+          year: yearSelect.value,
+          month: monthSelect.value,
+          insightsYear: insightsYearSelect.value,
+          language: currentLanguage,
+        };
+        localStorage.setItem("holidayBridgeData", JSON.stringify(data));
+      }
+
+      function loadFromLocalStorage() {
+        const savedData = localStorage.getItem("holidayBridgeData");
+        if (savedData) {
+          const data = JSON.parse(savedData);
+          yearSelect.value = data.year || new Date().getFullYear();
+          monthSelect.value = data.month || new Date().getMonth() + 1;
+          insightsYearSelect.value =
+            data.insightsYear || new Date().getFullYear();
+
+          const browserLang = navigator.language.split("-")[0];
+          currentLanguage =
+            data.language || (translations[browserLang] ? browserLang : "ko");
+          document.getElementById("language-select").value = currentLanguage;
+          setLanguage(currentLanguage);
+
+          renderCalendars(); // Render calendars with loaded data
+          // No automatic analysis on load, user has to click "Analyze Holidays"
+        } else {
+          const browserLang = navigator.language.split("-")[0];
+          currentLanguage = translations[browserLang] ? browserLang : "ko";
+          document.getElementById("language-select").value = currentLanguage;
+          setLanguage(currentLanguage);
+          renderCalendars(); // Initial render with default values
+        }
+      }
+
+      // Initialize on page load
+      document.addEventListener("DOMContentLoaded", loadFromLocalStorage);
+
+      // Add event listeners for select changes to save automatically
+      yearSelect.addEventListener("change", saveToLocalStorage);
+      monthSelect.addEventListener("change", saveToLocalStorage);
+      insightsYearSelect.addEventListener("change", saveToLocalStorage);
+    </script>
+  </body>
+</html>
